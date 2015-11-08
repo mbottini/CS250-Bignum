@@ -1,20 +1,43 @@
 #include <iostream>
 #include "bignum.h"
 
-const BigNum HighestNumAllowed =
-BigNum("3273390607896141870013189696827599152216642046043064789483291368096133"
-"79640467455488327009232590415715088668412756007100921725654588539305332"
-"8527589376");
+// HighestNumAllowed = 2^500, defined in bignum.h.
+
 
 int main() {
-    BigNum a("31415926534676736647");
-    BigNum b("438478473847834834784748");
-    BigNum c;
-    BigNum d;
+    BigNum a;
+    BigNum b;
+    string inputStr;
 
-    Division(b, a, c, d);
-    std::cout << b << " / " << a << " = " << c << " remainder " << d << "\n";
-    std::cout << "GCD = " << gcd(a, b) << "\n";
+    std::cout << "Input the first number.\n";
+    std::cin >> inputStr;
+    if(abs(BigNum(inputStr)) < HighestNumAllowed) {
+        a = BigNum(inputStr);
+    }
+
+    else {
+        std::cout << "Input is too large of a number.\n";
+        return 0;
+    }
+
+    std::cout << "Input the second number.\n";
+    std::cin >> inputStr;
+    if(abs(BigNum(inputStr)) < HighestNumAllowed) {
+        b = BigNum(inputStr);
+    }
+
+    else {
+        std::cout << "Input is too large of a number.\n";
+        return 0;
+    }
+
+    BigNum quotient(0);
+    BigNum remainder(0);
+
+    QuickDivide(a, b, quotient, remainder);
+
+    std::cout << quotient << "\n";
+    std::cout << remainder << "\n";
     return 0;
 }
 
