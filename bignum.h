@@ -45,6 +45,7 @@ class BigNum {
         bool operator ==(const BigNum& otherNum) const;
         bool operator >(const BigNum& otherNum) const;
         bool operator <(const BigNum& otherNum) const;
+        bool operator >=(const BigNum& otherNum) const;
         bool iszero() const;
         bool isNaN() const;
 
@@ -53,6 +54,7 @@ class BigNum {
 BigNum gcd(BigNum bn1, BigNum bn2);
 void QuickDivide(const BigNum& dividend, const BigNum& divisor, 
         BigNum& quotient, BigNum& remainder);
+BigNum QuickMod(const BigNum& dividend, const BigNum& divisor);
 intVector stripTrailingZeros(intVector v);
 ostream& operator <<(ostream& os, const BigNum& bn);
 void printVector(const intVector& v);

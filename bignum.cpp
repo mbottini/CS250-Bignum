@@ -203,7 +203,6 @@ BigNum BigNum::operator /(const BigNum& otherNum) const {
     }
 
     else if(otherNum.isNegative()) {
-        std::cout << "Returning " << (*this) << " / " << -(otherNum) << "\n";
         return -((*this) / (-(otherNum)));
     }
 
@@ -211,7 +210,7 @@ BigNum BigNum::operator /(const BigNum& otherNum) const {
         BigNum temp = *this;
         BigNum quotient(0);
 
-        while(temp > otherNum) {
+        while(temp >= otherNum) {
             temp -= otherNum;
             quotient++;
         }
@@ -240,7 +239,7 @@ BigNum BigNum::operator %(const BigNum& otherNum) const {
     if(!otherNum.iszero()) {
         BigNum temp = *this;
         
-        while(temp > otherNum) {
+        while(temp >= otherNum) {
             temp -= otherNum;
         }
 
@@ -345,6 +344,10 @@ bool BigNum::operator <(const BigNum& otherNum) const {
     return !(*this == otherNum) && !(*this > otherNum);
 }
 
+bool BigNum::operator >=(const BigNum& otherNum) const {
+    return *this == otherNum || *this > otherNum;
+}
+
 bool BigNum::iszero() const {
     if(this->isNaN()) {
         return false;
@@ -372,12 +375,12 @@ BigNum gcd(BigNum bn1, BigNum bn2) {
         std::swap(bn1, bn2);
     }
 
-    if((bn2 - bn1).iszero()) {
+    if(QuickMod(bn1, bn2).iszero()) {
        return bn2;
     }
 
     else {
-       return gcd(bn2, bn1 % bn2);
+       return gcd(bn2, QuickMod(bn1, bn2));
     }
 } 
 
@@ -400,11 +403,21 @@ void QuickDivide(const BigNum& dividend, const BigNum& divisor,
     std::reverse(qVec.begin(), qVec.end());
 
     quotient = BigNum(qVec, false);
-    if((divisor - remainder).iszero()) {
-        remainder = BigNum(0);
-        quotient++;
-    }
 }
+
+BigNum QuickMod(const BigNum& dividend, const BigNum& divisor) {
+    BigNum remainder = BigNum(0);
+
+    intVector dVec = dividend.getArray();
+
+    for(intRevConstIter i = dVec.rbegin(); i != dVec.rend(); ++i) {
+        remainder <<= 1;
+        remainder += (*i);
+        remainder = remainder % divisor;
+    }
+
+    return remainder;
+} 
 
 intVector stripTrailingZeros(intVector v) {
     int j = 0;
@@ -459,6 +472,10 @@ intVector ParseString(const string& inputStr) {
         for(int i = inputStr.length() - 1; i >= 0; i--) {
             newVector.push_back(inputStr[i] - '0');
         }
+    }
+    
+    else {
+        newVector.push_back(-1);
     }
 
     return newVector;

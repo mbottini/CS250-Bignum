@@ -11,33 +11,50 @@ int main() {
 
     std::cout << "Input the first number.\n";
     std::cin >> inputStr;
-    if(abs(BigNum(inputStr)) < HighestNumAllowed) {
-        a = BigNum(inputStr);
+    while(BigNum(inputStr).isNaN() || 
+            abs(BigNum(inputStr)) > HighestNumAllowed) {
+        if(BigNum(inputStr).isNaN()) {
+            std::cout << "Input is not a number.\n";
+        }
+
+        else {
+            std::cout << "Input is too large of a number.\n";
+        }
+
+        std::cout << "Input the first number.\n";
+        std::cin >> inputStr;
     }
 
-    else {
-        std::cout << "Input is too large of a number.\n";
-        return 0;
-    }
+    a = BigNum(inputStr);
+
 
     std::cout << "Input the second number.\n";
     std::cin >> inputStr;
-    if(abs(BigNum(inputStr)) < HighestNumAllowed) {
-        b = BigNum(inputStr);
+
+    while(BigNum(inputStr).isNaN() ||
+            abs(BigNum(inputStr)) > HighestNumAllowed) {
+        if(BigNum(inputStr).isNaN()) {
+            std::cout << "Input is not a number.\n";
+        }
+
+        else {
+            std::cout << "Input is too large of a number.\n";
+        }
+
+        std::cout << "Input the first number.\n";
+        std::cin >> inputStr;
     }
 
-    else {
-        std::cout << "Input is too large of a number.\n";
-        return 0;
-    }
+    b = BigNum(inputStr);
 
     BigNum quotient(0);
     BigNum remainder(0);
 
     QuickDivide(a, b, quotient, remainder);
 
-    std::cout << quotient << "\n";
-    std::cout << remainder << "\n";
+    std::cout << a << " / " << b << " = " << quotient << ", remainder " <<
+                 remainder << "\n";
+    std::cout << "GCD = " << gcd(a, b) << "\n";
     return 0;
 }
 
