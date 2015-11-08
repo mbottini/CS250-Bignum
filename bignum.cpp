@@ -1,18 +1,25 @@
 #include "bignum.h"
 
+// Creates a NaN BigNum. Any BigNum with a negative number in the 0th element 
+// is NaN.
+// |
+// v
 BigNum::BigNum() {
-    _array.push_back(-1); // Negative number in the first element means NaN.
+    _array.push_back(-1);
     _negative = false;
     return;
 }
 
+// Creates a BigNum from int. Obviously, it can only take int-sized numbers.
+// |
+// v
 BigNum::BigNum(int inputInt) {
     std::stringstream ss;
     ss << inputInt;
     string inputStr = ss.str();
 
-    // Duplicate of below. Unfortunately, C++ doesn't allow calling one
-    // constructor inside another.
+    // Duplicated in string constructor. Unfortunately, C++ doesn't 
+    // allow calling one constructor inside another.
 
     if(inputStr[0] == '-') {
         _negative = true;
@@ -28,6 +35,9 @@ BigNum::BigNum(int inputInt) {
     return;
 }
 
+// Creates BigNum from string input. Creates NaN if the string is invalid.
+// |
+// v
 BigNum::BigNum(string inputStr) {
     if(inputStr[0] == '-') {
         _negative = true;
@@ -60,7 +70,10 @@ BigNum& BigNum::operator =(const BigNum& original) {
     _negative = original.isNegative();
     return *this;
 }
-
+// Creates BigNum from vector of integers and a negative sign. Used a lot in
+// the arithmetic operators.
+// |
+// v
 BigNum::BigNum(const intVector& v, bool neg) {
     _array = v;
     _array = stripTrailingZeros(_array);
@@ -68,6 +81,10 @@ BigNum::BigNum(const intVector& v, bool neg) {
     return;
 }
 
+// Returns _array[index] if a valid index is passed. Bear in mind that _array
+// is little-endian.
+// |
+// v
 int BigNum::operator [](int index) const {
     if(!(this->isNaN()) && index >= 0 && index < _array.size()) {
         return _array[index];
@@ -91,20 +108,24 @@ const intVector& BigNum::getArray() const {
 }
 
 BigNum BigNum::operator +(const BigNum& otherNum) const {
+    // Ways to avoid unpleasantness. Only positive numbers may be added or 
+    // subtracted. I play around with algebra to make sure that this happens.
+    // The negative sign is just a way to *treat* numbers.
+
     if(this->isNaN() || otherNum.isNaN()) {
-        return BigNum();
+        return BigNum(); // NaN + anything = NaN.
     }
 
     if(_negative && otherNum.isNegative()) {
-        return -(-*this + -otherNum);
+        return -(-*this + -otherNum); // -x + -y = -(x + y)
     }
 
     else if(_negative) {
-        return otherNum - (-*this);
+        return otherNum - (-*this); // -x + y = y - x
     }
 
     else if(otherNum.isNegative()) {
-        return *this - (-otherNum);
+        return *this - (-otherNum); // x + -y = x - y
     }
 
     int biggestLength = (this->length() > otherNum.length()) ?
@@ -116,8 +137,10 @@ BigNum BigNum::operator +(const BigNum& otherNum) const {
     bool carry = false;
     int newNum;
 
+    // Addition loop. Adds each number together, with carry, and adds the
+    // result to the array, smallest element at the front.
     for(int i = 0; i < biggestLength; i++) {
-        newNum = (*this)[i];
+        newNum = (*this)[i]; // Note that if out-of-bounds, [] returns 0.
 
         if(carry) {
             newNum++;
@@ -134,6 +157,8 @@ BigNum BigNum::operator +(const BigNum& otherNum) const {
         newVector.push_back(newNum);
     }
 
+    // And if there's a carry left over, we put one more 1 on there.
+
     if(carry) {
         newVector.push_back(1);
     }
@@ -142,24 +167,26 @@ BigNum BigNum::operator +(const BigNum& otherNum) const {
 }
 
 BigNum BigNum::operator -(const BigNum& otherNum) const {
+    // Same as addition, ways to avoid unpleasantness by only subtracting
+    // positive numbers.
     if(this->isNaN() || otherNum.isNaN()) {
-        return BigNum();
+        return BigNum(); // NaN - anything = NaN
     }
 
     if(_negative && otherNum.isNegative()) {
-        return -(-*this - otherNum);
+        return -(-*this - otherNum); // -x - -y = -(x - y)
     }
 
     else if(_negative) {
-        return -(-*this + otherNum);
+        return -(-*this + otherNum); // -x - y = -(x + y)
     }
 
     else if(otherNum.isNegative()) {
-        return *this + -otherNum;
+        return *this + -otherNum; // x - -y = x + y
     }
 
     else if(otherNum > *this) {
-        return -(otherNum - *this);
+        return -(otherNum - *this); // x - y = -(y - x)
     }
 
     intVector newVector;
@@ -186,9 +213,16 @@ BigNum BigNum::operator -(const BigNum& otherNum) const {
         newVector.push_back(newNum);
     }
 
+    // Carry should never happen, as we ensure that the bigger number always
+    // gets subtracted by the smaller number.
+
     return BigNum(newVector, false);
 }
 
+// Subtraction Division. If you want something that won't take longer than the
+// heat death of the universe to accomplish on big-big numbers, use QuickDivide.
+// |
+// v
 BigNum BigNum::operator /(const BigNum& otherNum) const {
     if(this->isNaN() || otherNum.isNaN()) {
         return BigNum();
@@ -223,6 +257,7 @@ BigNum BigNum::operator /(const BigNum& otherNum) const {
     }
 }
 
+// Modulo by subtraction. Use QuickMod if you want a faster version.
 BigNum BigNum::operator %(const BigNum& otherNum) const {
     if(this->isNaN() || otherNum.isNaN()) {
         return BigNum();
@@ -261,6 +296,8 @@ BigNum& BigNum::operator -=(const BigNum& otherNum) {
     return *this;
 }
 
+// Multiplies by 10^n. It does this by shifting 0s onto the front. Inefficient,
+// I know, but it's usually used for small numbers anyway.
 BigNum& BigNum::operator <<=(const int n) {
     for(int i = 0; i < n; i++) {
         _array.insert(_array.begin(), 0);
