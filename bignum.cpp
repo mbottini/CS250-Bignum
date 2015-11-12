@@ -60,11 +60,6 @@ BigNum::BigNum(const BigNum& original) {
 }
 
 BigNum& BigNum::operator =(const BigNum& original) {
-    if(original.isNaN()) {
-        BigNum();
-        return *this;
-    }
-
     _array = original.getArray();
     _array = stripTrailingZeros(_array);
     _negative = original.isNegative();
@@ -306,24 +301,7 @@ BigNum& BigNum::operator <<=(const int n) {
 }
 
 BigNum& BigNum::operator ++(int) {
-    if(this->isNaN()) {
-        return *this;
-    }
-
-    bool carry = true;
-
-    for(intIter i = _array.begin(); i != _array.end() && carry; ++i) {
-        carry = false;
-        (*i)++;
-        if((*i) > 9) {
-            (*i) -= 10;
-            carry = true;
-        }
-    }
-
-    if(carry) {
-        _array.push_back(1);
-    }
+    *this += BigNum(1);
 
     return *this;
 }
@@ -356,11 +334,23 @@ bool BigNum::operator >(const BigNum& otherNum) const {
         return false;
     }
 
-    if(otherNum.length() > this->length()) {
+    else if(this->isNegative() && otherNum.isNegative()) {
+        return (-otherNum) > (*this);
+    }
+
+    else if(this->isNegative()) {
         return false;
     }
 
-    if(this->length() > otherNum.length()) {
+    else if(otherNum.isNegative()) {
+        return true;
+    }
+
+    else if(otherNum.length() > this->length()) {
+        return false;
+    }
+
+    else if(this->length() > otherNum.length()) {
         return true;
     }
 
@@ -407,6 +397,18 @@ BigNum gcd(BigNum bn1, BigNum bn2) {
     if(bn1.iszero() || bn2.iszero()) {
         return BigNum();
     }
+    
+    if(bn1.isNegative() && bn2.isNegative()) {
+        return gcd(-bn1, -bn2);
+    }
+
+    if(bn1.isNegative()) {
+        return gcd(-bn1, bn2);
+    }
+
+    if(bn2.isNegative()) {
+        return gcd(bn1, -bn2);
+    }
 
     if(bn2 > bn1) {
         std::swap(bn1, bn2);
@@ -423,7 +425,21 @@ BigNum gcd(BigNum bn1, BigNum bn2) {
 
 void QuickDivide(const BigNum& dividend, const BigNum& divisor, 
         BigNum& quotient, BigNum& remainder) {
+
+    if(dividend.isNaN() || divisor.isNaN()) {
+        quotient = BigNum();
+        remainder = BigNum();
+        return;
+    }
+
+    if(divisor.iszero()) {
+        quotient = BigNum();
+        remainder = BigNum();
+        return;
+    }
+
     remainder = BigNum(0);
+    // Need to support individual negative numbers, but I'm out of time.
 
     intVector dVec = dividend.getArray();
     intVector qVec;
@@ -440,6 +456,15 @@ void QuickDivide(const BigNum& dividend, const BigNum& divisor,
     std::reverse(qVec.begin(), qVec.end());
 
     quotient = BigNum(qVec, false);
+
+    if(dividend.isNegative() && divisor.isNegative()) {
+        return;
+    }
+
+    else if(dividend.isNegative() || divisor.isNegative()) {
+        quotient = -quotient - 1;
+        remainder = QuickMod(remainder + abs(divisor), divisor);
+    }
 }
 
 BigNum QuickMod(const BigNum& dividend, const BigNum& divisor) {
